@@ -1,6 +1,6 @@
 # ip-seg6-encap
 
-`ip-seg6-encap` is a small Go CLI for adding IPv6 routes that use SRv6 encapsulation and reserve extra zeroed TLV space in the Segment Routing Header.
+`ip-seg6-encap` is a small Go CLI for adding IPv4 or IPv6 routes that use SRv6 encapsulation and reserve extra zeroed TLV space in the Segment Routing Header.
 
 The tool uses Linux netlink to install a static route with `SEG6_IPTUN_MODE_ENCAP`. If the route already exists, it replaces the route with the requested SRv6 encapsulation settings.
 
@@ -21,13 +21,7 @@ Build all packages:
 go build ./...
 ```
 
-Build a CLI binary in the repository root:
-
-```sh
-go build -o ip-sr-tlv .
-```
-
-The repository also includes a small Make target:
+Build a CLI binary in `build/`:
 
 ```sh
 make build
@@ -45,12 +39,12 @@ There are currently no committed test files.
 
 ## Usage
 
-Add an IPv6 route with SRv6 encapsulation:
+Add an IPv4 route with SRv6 encapsulation and 8 reserved SRH bytes:
 
 ```sh
-sudo ./ip-sr-tlv add \
-  --prefix 2001:db8:100::/64 \
-  --segs 2001:db8::1 \
+sudo ./build/ip-seg6-encap add \
+  --prefix 10.4.0.0/24 \
+  --segs fd00:a:7:0:8200::,fd00:a:3:0:8300::,fd00:a:6::1,fd00:a:4::d4 \
   --dev eth0 \
   --reserve 8
 ```
@@ -59,8 +53,8 @@ The same command can be run without building first:
 
 ```sh
 sudo go run . add \
-  --prefix 2001:db8:100::/64 \
-  --segs 2001:db8::1 \
+  --prefix 10.4.0.0/24 \
+  --segs fd00:a:7:0:8200::,fd00:a:3:0:8300::,fd00:a:6::1,fd00:a:4::d4 \
   --dev eth0 \
   --reserve 8
 ```
@@ -69,7 +63,7 @@ sudo go run . add \
 
 | Flag | Required | Description |
 | --- | --- | --- |
-| `--prefix` | yes | IPv6 destination prefix to install. IPv4 prefixes are rejected. |
+| `--prefix` | yes | IPv4 or IPv6 destination prefix to install. |
 | `--segs` | yes | One or more SRv6 segment IPv6 addresses. |
 | `--dev` | yes | Network interface used for the route link index. |
 | `--reserve` | no | Number of bytes to reserve as zeroed SRH TLV space. Defaults to `0`. Must be a multiple of `8`. |
@@ -77,7 +71,7 @@ sudo go run . add \
 Multiple segments can be passed as a comma-separated value accepted by Cobra's IP slice flag parser:
 
 ```sh
-sudo ./ip-sr-tlv add \
+sudo ./build/ip-seg6-encap add \
   --prefix 2001:db8:100::/64 \
   --segs 2001:db8::1,2001:db8::2 \
   --dev eth0 \
@@ -88,9 +82,10 @@ sudo ./ip-sr-tlv add \
 
 The `add` command:
 
-1. validates that `--prefix` is IPv6,
+1. accepts an IPv4 or IPv6 `--prefix`,
 2. resolves the interface named by `--dev`,
-3. builds an SRv6 encapsulation route with the requested segment list,
+3. builds an SRv6 encapsulation route with the requested segment list, encoding
+   the SRH segment array in Linux kernel order,
 4. appends `--reserve` bytes of zeroed TLV space to the encoded SRH,
 5. installs the route through netlink, replacing an existing route when the kernel reports `EEXIST`.
 

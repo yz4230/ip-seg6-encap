@@ -58,7 +58,8 @@ func (s *SEG6EncapWithTLV) Encode() ([]byte, error) {
 	b[9] = 0                    // srh.flags (SR6_FLAG1_HMAC for srh_hmac)
 	// srh.reserved: Defined as "Tag" in draft-ietf-6man-segment-routing-header-07
 	native.PutUint16(b[10:], 0) // srh.reserved
-	for _, netIP := range segments {
+	for i := len(segments) - 1; i >= 0; i-- {
+		netIP := segments[i]
 		segment := netIP.To16()
 		if segment == nil || netIP.To4() != nil {
 			return nil, fmt.Errorf("EncodeSEG6Encap: segment %q is not an IPv6 address", netIP.String())
