@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This repository contains a small Go CLI for adding IPv6 Segment Routing routes with reserved TLV space.
+This repository contains a small Go CLI for adding IPv6 Segment Routing routes with optional TLV space.
 
 - `main.go` is the entry point and delegates to the `cmd` package.
 - `cmd/root.go` defines the Cobra root command and shared logging setup.
@@ -17,7 +17,7 @@ There are currently no test, fixture, or asset directories. Add tests beside the
 - `go test ./...` runs all package tests. It currently reports no test files.
 - `go build ./...` compiles all packages.
 - `go build -o ip-sr-tlv .` builds the CLI binary in the repository root.
-- `go run . add --prefix 2001:db8::/64 --segs 2001:db8::1 --dev eth0 --reserve 8` runs the CLI locally.
+- `go run . add --prefix 2001:db8::/64 --segs 2001:db8::1 --dev eth0 --tlv-type 252 --tlv-len 1` runs the CLI locally.
 - `gofmt -w main.go cmd/*.go` formats edited Go files.
 
 Route-changing commands require Linux, suitable interfaces or namespaces, and privileges such as root or `CAP_NET_ADMIN`.
@@ -36,7 +36,7 @@ Prefer unit tests for pure behavior such as SRH encoding validation. Netlink mut
 
 ## Commit & Pull Request Guidelines
 
-No Git history is available in this checkout, so follow conventional, imperative commit subjects such as `add SRH encode tests` or `validate reserve length`.
+No Git history is available in this checkout, so follow conventional, imperative commit subjects such as `add SRH encode tests` or `validate TLV length`.
 
 Pull requests should include a behavior summary, test results such as `go test ./...`, and any manual networking setup used to verify route changes. Link related issues when available and include command output for CLI behavior changes.
 
